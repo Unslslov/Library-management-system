@@ -16,7 +16,10 @@ return new class extends Migration
             $table->integer('book_id')->index()->constrained('books');
             $table->integer('user_id')->index()->constrained('users');
             $table->date('rent_date');
-            $table->date('return_date');
+            $table->date('due_date');
+            $table->date('return_date')->nullable();
+
+            $table->softDeletes();
 
             $table->timestamps();
         });

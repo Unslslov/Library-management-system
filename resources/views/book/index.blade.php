@@ -1,14 +1,24 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Книги</title>
-</head>
 <body>
 <h1>Список книг</h1>
+@if(Auth::user()->unreadNotifications->count())
+    <div>
+        <h2>Уведомления</h2>
+        <ul>
+            @foreach(Auth::user()->unreadNotifications as $notification)
+                <li>
+                    {{ $notification->data['book_id'] }} - Срок возврата: {{ $notification->data['due_date'] }}
+                    <form action="{{ route('rents.return', ['rent' => $notification->data['rent_id'],
+                                                           'notification' => $notification->id]) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <button type="submit">Вернуть книгу</button>
+                    </form>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <a href="{{ route('books.create') }}">Добавить книгу</a>
 <table border="1">
     <thead>
@@ -28,7 +38,8 @@
             <td>
                 <a href="{{ route('books.show', $book->id) }}">Посмотреть</a>
                 <a href="{{ route('books.edit', $book->id) }}">Редактировать</a>
-                <form action=" {{ route('books.destroy', $book->id) }}" method="POST" style="display: inline;">
+                <a href="{{ route('rents.create', $book->id) }}">Арендовать книгу</a>
+                <form action="{{ route('books.destroy', $book->id) }}" method="POST" style="display: inline;">
                     @csrf
                     @method('DELETE')
                     <button type="submit" onclick="return confirm('Вы уверены?')">Удалить</button>
@@ -39,4 +50,3 @@
     </tbody>
 </table>
 </body>
-</html>
