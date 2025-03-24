@@ -13,7 +13,7 @@
     @csrf
     @method('PUT')
     <label for="title">Название:</label>
-    <input type="text" name="title" id="title" required> <br><br>
+    <input type="text" name="title" id="title" value="{{ old('title', $book->title) }}" required> <br><br>
 
     <label for="author_id">Автор:</label>
     <select name="author_id" id="author_id" required>

@@ -1,5 +1,8 @@
 <body>
 <h1>Список книг</h1>
+<div>
+    <a href="{{ route('books.index') }}">Вернуться в СССР</a>
+</div>
 @if(Auth::user()->unreadNotifications->count())
     <div>
         <h2>Уведомления</h2>
@@ -7,11 +10,10 @@
             @foreach(Auth::user()->unreadNotifications as $notification)
                 <li>
                     {{ $notification->data['book_id'] }} - Срок возврата: {{ $notification->data['due_date'] }}
-                    <form action="{{ route('rents.return', ['rent' => $notification->data['rent_id'],
-                                                           'notification' => $notification->id]) }}" method="POST">
+                    <form action="{{ route('rents.delete.notification', [$notification->data['rent_id'], $notification->id]) }}" method="POST">
                         @csrf
-                        @method('PUT')
-                        <button type="submit">Вернуть книгу</button>
+                        @method('DELETE')
+                        <button type="submit">Продлить книгу</button>
                     </form>
                 </li>
             @endforeach

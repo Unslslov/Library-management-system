@@ -27,12 +27,14 @@
             <td>{{ $rent->rent_date }}</td>
             <td>{{ $rent->due_date ?? 'Не возвращена' }}</td>
             <td>
-                @if(now() < \Carbon\Carbon::parse($rent->due_date) ?? !isset($rent->return_date))
+                @if(now() < \Carbon\Carbon::parse($rent->due_date) && !isset($rent->return_date))
                     <form action="{{ route('rents.return', $rent->id) }}" method="POST">
                         @csrf
-                        @method('DELETE')
-                        <button type="submit">Возвращено</button>
+                        @method('PUT')
+                        <button type="submit">Вернуть</button>
                     </form>
+                @else
+                    <label>Возвращено</label>
                 @endif
             </td>
         </tr>

@@ -33,7 +33,10 @@ class NotifyReturnBook extends Command
 
         foreach($users as $user)
         {
-            $rents = $user->rents()->whereDate('due_date', Carbon::tomorrow())->get();
+            $rents = $user->rents()
+                ->whereDate('due_date', Carbon::tomorrow())
+                ->whereNull('return_date')
+                ->get();
             if($rents->isNotEmpty())
             {
                 foreach($rents as $rent)
