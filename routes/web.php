@@ -20,7 +20,7 @@ Route::get('/rents/edit/{rent}', [RentController::class, 'edit'])->name('rents.e
 
 Route::patch('/rents/update/{rent}', [RentController::class, 'update'])->name('rents.update');
 
-Route::delete('/rents/{rent}/{notificationId}', [RentController::class, 'redirectToRentBook'])->name('rents.delete.notification');
+Route::delete('/rents/{rent}/{notificationId}', [RentController::class, 'deleteNotificationAndRedirectToRentEdit'])->name('rents.delete.notification');
 
 Route::get('/', function () {
     return view('welcome');

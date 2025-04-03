@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Author;
@@ -10,21 +9,13 @@ use App\Models\Book;
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(IndexBookRequest $request)
+    public function index()
     {
-//        $data = $request->validated(); TODO: implement this request
-
         $books = Book::all();
 
         return view('book.index', compact('books'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $authors = Author::all();
@@ -32,27 +23,55 @@ class BookController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/books",
+     *     summary="Store a newly created book in storage",
+     *     tags={"Books"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BookStoreRequestSchema")
+     *     ),
+     *     @OA\Response(
+     *           response=201,
+     *           description="Book stored successfully",
+     *           @OA\JsonContent(
+     *               @OA\Property(
+     *                   property="data",
+     *                   type="array",
+     *                   @OA\Items(
+     *                       type="object",
+     *                       @OA\Property(property="id", type="integer", example=1),
+     *                       @OA\Property(property="title", type="string", example="The Great Gatsby"),
+     *                       @OA\Property(property="author_id", type="integer", example=1),
+     *                       @OA\Property(property="published_at", type="string", format="date-time", example="1925-04-10T00:00:00Z")
+     *                   )
+     *               )
+     *           )
+     *       ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
      */
+
     public function store(StoreBookRequest $request)
     {
         $data = $request->validated();
 
+        if (empty($data)) {
+            return redirect()->back()->withErrors(['error' => 'Недостаточно данных для создания книги.']);
+        }
+
         Book::create($data);
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Книга успешно создана.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Book $book)
     {
         return view('book.show', compact('book'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Book $book)
     {
         $authors = Author::all();
@@ -60,23 +79,100 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Patch(
+     *     path="/api/books/{book}",
+     *     summary="Update the specified book in storage",
+     *     tags={"Books"},
+     *     @OA\Parameter(
+     *         name="book",
+     *         in="path",
+     *         description="ID of book to update",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/BookUpdateRequestSchema")
+     *     ),
+     *     @OA\Response(
+     *            response=202,
+     *            description="Book update successfully",
+     *            @OA\JsonContent(
+     *                @OA\Property(
+     *                    property="data",
+     *                    type="array",
+     *                    @OA\Items(
+     *                        type="object",
+     *                        @OA\Property(property="id", type="integer", example=1),
+     *                        @OA\Property(property="title", type="string", example="The Great Gatsby"),
+     *                        @OA\Property(property="author_id", type="integer", example=1),
+     *                        @OA\Property(property="published_at", type="string", format="date-time", example="1925-04-10T00:00:00Z")
+     *                    )
+     *                )
+     *            )
+     *        ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Book not found"
+     *     )
+     * )
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
         $data = $request->validated();
 
+        if (empty($data)) {
+            return redirect()->back()->withErrors(['error' => 'Недостаточно данных для обновления книги.']);
+        }
+
         $book->update($data);
 
-        return redirect()->route('books.index');
+        return redirect()->route('books.index')->with('success', 'Книга успешно обновлена.');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *      path="/api/books/{book}",
+     *      operationId="deleteBook",
+     *      tags={"Books"},
+     *      summary="Remove the specified book from storage",
+     *      description="Remove the specified book from storage",
+     *      @OA\Parameter(
+     *          name="book",
+     *          in="path",
+     *          description="ID of book to delete",
+     *          required=true,
+     *          @OA\Schema(
+     *              type="integer",
+     *              format="int64"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Book deleted successfully"
+     *      ),
+     *      @OA\Response(
+     *          response=404,
+     *          description="Book not found"
+     *      )
+     * )
      */
     public function destroy(Book $book)
     {
+        if (!$book) {
+            return redirect()->route('books.index')
+                             ->with('error', 'Книга не найдена.');
+        }
+
         $book->delete();
-        return redirect()->route('book.index');
+        return redirect()->route('books.index')
+                         ->with('success', 'Книга успешно удалена.');
     }
 }

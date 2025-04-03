@@ -17,18 +17,44 @@ class RentController extends Controller
     public function index()
     {
         $rents = Rent::all();
-        return view('rent.index', compact('rents'));
-    }
 
-    public function show(Rent $rent)
-    {
-        return view('rent.show', compact('rent'));
+        return view('rent.index', compact('rents'));
     }
 
     public function create(Book $book)
     {
         return view('rent.create', compact('book'));
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/rents",
+     *     summary="Store a newly created rental in storage",
+     *     tags={"Rentals"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/RentStoreRequestSchema")
+     *     ),
+     *     @OA\Response(
+     *           response=201,
+     *           description="Rental stored successfully",
+     *           @OA\JsonContent(
+     *               @OA\Property(
+     *                   property="data",
+     *                    type="object",
+     *                    @OA\Property(
+     *                        property="rent",
+     *                        ref="#/components/schemas/RentResourceSchema"
+     *                    )
+     *               )
+     *           )
+     *       ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     )
+     * )
+     */
 
     public function store(StoreRentRequest $request)
     {
@@ -48,6 +74,50 @@ class RentController extends Controller
         return view('rent.edit', compact('rent', 'book'));
     }
 
+    /**
+     * @OA\Patch(
+     *     path="/api/rents/{rent}",
+     *     summary="Update the specified rental in storage",
+     *     tags={"Rentals"},
+     *     @OA\Parameter(
+     *         name="book",
+     *         in="path",
+     *         description="ID of rental to update",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/RentUpdateRequestSchema")
+     *     ),
+     *     @OA\Response(
+     *            response=202,
+     *            description="Rental update successfully",
+     *            @OA\JsonContent(
+     *                @OA\Property(
+     *                    property="data",
+     *                    type="object",
+     *                    @OA\Property(
+     *                        property="rent",
+     *                        ref="#/components/schemas/RentResourceSchema"
+     *                    )
+     *                )
+     *            )
+     *        ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Rental not found"
+     *     )
+     * )
+     */
+
     public function update(UpdateRentRequest $request, Rent $rent)
     {
         $data = $request->validated();
@@ -56,6 +126,45 @@ class RentController extends Controller
 
         return redirect()->route('rents.index');
     }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/rents/{rent}/return",
+     *     summary="Return a rented book",
+     *     tags={"Rents"},
+     *     @OA\Parameter(
+     *         name="rent",
+     *         in="path",
+     *         description="ID of the rent to return",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Book returned successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Book returned successfully")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Rent not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Rent not found")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Server error")
+     *         )
+     *     )
+     * )
+     */
 
     public function returnBook(Rent $rent)
     {
@@ -71,7 +180,8 @@ class RentController extends Controller
         return redirect()->route('books.index');
     }
 
-    public function redirectToRentBook(Rent $rent, $notificationId)
+
+    public function deleteNotificationAndRedirectToRentEdit(Rent $rent, $notificationId)
     {
         if (isset($notificationId)) {
             $notification = Auth::user()->notifications()->find($notificationId);
